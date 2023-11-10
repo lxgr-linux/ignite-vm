@@ -3,7 +3,7 @@ Makes dealing with different ignite versions way easiert to handle
 
 ## Installation
 ```bash
-go install github.com/lxgr-linux/ignite-vm
+go install github.com/lxgr-linux/ignite-vm@v0.1.0
 ```
 
 ## Usage
