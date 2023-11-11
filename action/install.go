@@ -49,7 +49,7 @@ func Install(ctx context.Context, release string) error {
 	}
 	
 	for _, asset := range assets {
-		info := getInfoFromAsset(asset)
+		info := getInfoFromAsset(asset, release == "nightly")
 		if info.Arch == arch && info.Os == ops {
 			releaseDir := filepath.Join(getReleasePath(), "/"+release)
 			dlPath := filepath.Join(releaseDir, "/dl.tar.gz")
@@ -79,8 +79,12 @@ type ReleaseInfo struct {
 	Arch string
 }
 
-func getInfoFromAsset(asset *github.ReleaseAsset) ReleaseInfo {
-	splid := strings.Split(strings.Trim(*asset.Name, ".tar.gz"), "_")
+func getInfoFromAsset(asset *github.ReleaseAsset, nightly bool) ReleaseInfo {
+	var sep = "_"
+	if nightly {
+		sep = "-"
+	}
+	splid := strings.Split(strings.Trim(*asset.Name, ".tar.gz"), sep)
 	
 	return ReleaseInfo{
 		Raw: asset,
