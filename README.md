@@ -1,5 +1,5 @@
 # Ignite version manager
-Makes dealing with different ignite versions way easiert to handle
+Makes dealing with different [ignite](https://github.com/ignite/cli) versions way easiert to handle
 
 ## Installation
 ```bash
