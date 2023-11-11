@@ -16,14 +16,26 @@ func Set(release string) error {
 		return fmt.Errorf("version '%s' is not installed", release)
 	}
 	
-	filePath := filepath.Join(getReleasePath(), release, "ignite")
+	var filePath string
+	for _, name := range []string{"ignite", "starport"} {
+		p := filepath.Join(getReleasePath(), release, name)
+		_, err = os.Stat(p)
+		if err == nil {
+			filePath = p
+			break
+		}
+		fmt.Println(err)
+	}
+	if filePath == "" {
+		return fmt.Errorf("no binary found in asset")
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 	binDir := filepath.Join(home, ".local/bin")
-	fmt.Printf("Make sure %s is in your path!\n", binDir)
 	linkPath := filepath.Join(binDir, "ignite")
+	fmt.Printf("Make sure %s is in your path!\n", binDir)
 	err = os.MkdirAll(binDir, os.ModePerm)
 	if err != nil {
 		return err
