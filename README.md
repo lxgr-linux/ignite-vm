@@ -4,7 +4,7 @@ Makes dealing with different [ignite](https://github.com/ignite/cli) versions ea
 ## Installation
 First remove all instances of ignite, you have already installed, then
 ```bash
-go install github.com/lxgr-linux/ignite-vm@v0.1.1
+go install github.com/lxgr-linux/ignite-vm@latest
 ```
 
 ## Usage
