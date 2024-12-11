@@ -2,13 +2,16 @@ package action
 
 import (
 	"context"
-	"github.com/google/go-github/v56/github"
 	"os"
+
+	"github.com/google/go-github/v56/github"
 )
 
 type RemoteRelease struct {
 	Name string
-	Id int64
+	Id   int64
+	User string
+	Repo string
 }
 
 func getClient() *github.Client {
@@ -25,18 +28,36 @@ func GetLocalReleases() (releases []string, err error) {
 			releases = append(releases, sub.Name())
 		}
 	}
-	
+
 	return
 }
 
 func GetRemoteReleases(ctx context.Context) (releases []RemoteRelease, err error) {
 	ghClient := getClient()
-	rels, _, err := ghClient.Repositories.ListReleases(ctx, "ignite", "cli", nil)
+
+	for _, remoteInfo := range [][2]string{{"ignite", "cli"}, {"lxgr-linux", "ignite-cli"}} {
+		rels, err := getSpecificRemoteRelease(ctx, ghClient, remoteInfo[0], remoteInfo[1])
+		if err != nil {
+			return []RemoteRelease{}, err
+		}
+		releases = append(releases, rels...)
+	}
+	return
+}
+
+func getSpecificRemoteRelease(
+	ctx context.Context, ghClient *github.Client, user string, repo string,
+) (releases []RemoteRelease, err error) {
+	rels, _, err := ghClient.Repositories.ListReleases(ctx, user, repo, nil)
 	if err != nil {
 		return
 	}
+
 	for _, rel := range rels {
-		releases = append(releases, RemoteRelease{*rel.Name, *rel.ID})
+		releases = append(releases, RemoteRelease{
+			*rel.Name, *rel.ID, user, repo,
+		})
 	}
+
 	return
 }

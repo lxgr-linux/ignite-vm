@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"github.com/google/go-github/v56/github"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/google/go-github/v56/github"
 )
 
 func Install(ctx context.Context, release string) error {
@@ -21,13 +22,13 @@ func Install(ctx context.Context, release string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	client := getClient()
 	remoteReleases, err := GetRemoteReleases(ctx)
 	if err != nil {
 		return err
 	}
-	
+
 	var releaseObj *RemoteRelease
 	for _, rel := range remoteReleases {
 		if rel.Name == release {
@@ -35,19 +36,21 @@ func Install(ctx context.Context, release string) error {
 			break
 		}
 	}
-	
+
 	if releaseObj == nil {
 		return fmt.Errorf(
 			"release '%s' ist not awailable; see 'ignite-vm list' to get all awailable releases",
 			release,
 		)
 	}
-	
-	assets, _, err := client.Repositories.ListReleaseAssets(ctx, "ignite", "cli", releaseObj.Id, nil)
+
+	assets, _, err := client.Repositories.ListReleaseAssets(
+		ctx, releaseObj.User, releaseObj.Repo, releaseObj.Id, nil,
+	)
 	if err != nil {
 		return err
 	}
-	
+
 	for _, asset := range assets {
 		info := getInfoFromAsset(asset, release == "nightly")
 		if info.Arch == arch && info.Os == ops {
@@ -65,17 +68,17 @@ func Install(ctx context.Context, release string) error {
 			if err != nil {
 				return err
 			}
-			
+
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("error while finding proper asset")
 }
 
 type ReleaseInfo struct {
-	Raw *github.ReleaseAsset
-	Os string
+	Raw  *github.ReleaseAsset
+	Os   string
 	Arch string
 }
 
@@ -85,11 +88,11 @@ func getInfoFromAsset(asset *github.ReleaseAsset, nightly bool) ReleaseInfo {
 		sep = "-"
 	}
 	splid := strings.Split(strings.Trim(*asset.Name, ".tar.gz"), sep)
-	
+
 	return ReleaseInfo{
-		Raw: asset,
-		Arch: splid[len(splid) - 1],
-		Os: splid[len(splid) - 2],
+		Raw:  asset,
+		Arch: splid[len(splid)-1],
+		Os:   splid[len(splid)-2],
 	}
 }
 
@@ -100,7 +103,7 @@ func getOS() (os string, err error) {
 	} else {
 		err = fmt.Errorf("platform '%s' is not supported", ops)
 	}
-	return 
+	return
 }
 
 func getArch() string {
@@ -112,7 +115,7 @@ func downloadAsset(path string, url string) (err error) {
 
 	// Create the file
 	out, err := os.Create(path)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 	defer out.Close()
@@ -126,7 +129,7 @@ func downloadAsset(path string, url string) (err error) {
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
@@ -141,6 +144,6 @@ func unpackDl(archivePath string, outputDir string) error {
 		archivePath,
 		"-C",
 		outputDir,
-		)
+	)
 	return cmd.Run()
 }
